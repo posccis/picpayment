@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PicPayment.Domain\PicPayment.Domain.csproj" />
+    <ProjectReference Include="..\PicPayment.Persistence\PicPayment.Persistence.csproj" />
+  </ItemGroup>
+
 </Project>
