@@ -7,8 +7,6 @@ namespace PicPayment.Persistence.Context
     public class PicPaymentContext : DbContext
     {
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<ContaPF> ContasPF { get; set; }
-        public DbSet<ContaPJ> ContasPJ { get; set; }
         public DbSet<Transferencia> Transferencias { get; set; }
         public PicPaymentContext(DbContextOptions op) : base(op) 
         { }
@@ -16,13 +14,25 @@ namespace PicPayment.Persistence.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Usuario>().HasIndex(u => new { u.Id, u.CPF, u.Email }).IsUnique();
-            modelBuilder.Entity<Usuario>().HasMany(u => u.ContasPF).WithOne(c => c.Usuario).HasForeignKey(c => c.UsuarioId);
-            modelBuilder.Entity<Usuario>().HasMany(u => u.ContasPJ).WithOne(c => c.Usuario).HasForeignKey(c => c.UsuarioId);
-            modelBuilder.Entity<Usuario>().Property(u => u.CPF).HasMaxLength(11);
+            modelBuilder.Entity<Transferencia>().HasIndex(t => t.Id).IsUnique();
+            modelBuilder.Entity<Transferencia>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(t => t.IdContaOrigem)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Transferencia>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(t => t.IdContaDestino)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
             var usuarios = Seed.GetUsuarioSeed();
+            var transferencias = Seed.GetTransferenciaSeed(usuarios);
+
             modelBuilder.Entity<Usuario>().HasData(usuarios);
-            modelBuilder.Entity<ContaPF>().HasData(Seed.GetContaPFSeed(usuarios));
-            modelBuilder.Entity<ContaPJ>().HasData(Seed.GetContaPJSeed(usuarios));
+            modelBuilder.Entity<Transferencia>().HasData(transferencias);
 
             base.OnModelCreating(modelBuilder);
             
