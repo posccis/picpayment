@@ -16,7 +16,6 @@ namespace PicPayment.Domain.Interfaces
         public string Senha { get; set; }
         public string Categoria { get; set; }
         public int Saldo { get; set; }
-        public IEnumerable<ContaPF> ContasPF { get; set; }
-        public IEnumerable<ContaPJ> ContasPJ { get; set; }
+        public IEnumerable<Transferencia> Tranferencias { get; set; }
     }
 }
