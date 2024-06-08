@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PicPayment.Application.Interfaces;
 using PicPayment.Domain.Domains;
+using PicPayment.Domain.Exceptions;
 using PicPayment.Persistence.Context;
 using System;
 using System.Collections.Generic;
@@ -26,22 +28,67 @@ namespace PicPayment.Application.Services
 
         public async Task InserirUsuario(Usuario usuario)
         {
-            try
+            using(IDbContextTransaction transaction = _payment.Database.BeginTransaction())
             {
-                var usuarioAux = await ObterUsuarioPorCPF(usuario.CPF);
+                try
+                {
+                    var usuarioCPF = await ObterUsuarioPorCPF(usuario.CPF);
+                    var usuarioEmail = await ObterUsuarioPorEmail(usuario.Email);
+                    if (usuarioCPF == null && usuarioEmail == null)
+                    {
+                        _payment.Usuarios.Add(usuario);
+                        _payment.SaveChanges();
+                    }
+                    else
+                    {
+                        throw new ServiceException(usuarioCPF == null ? "Já existe um usuário cadastrado com este CPF!" : "Já existe um usuário cadastrado com este e-mail!");
+                    }
 
-            }
-            catch (Exception)
-            {
+                }
+                catch(ServiceException serviceExc)
+                {
+                    await transaction.RollbackAsync();
 
-                throw;
+                    throw new ServiceException("Um erro ocorreu enquanto tentava inserir um novo usuário: " + serviceExc);
+                }
+                catch (Exception genericExc)
+                {
+
+                    await transaction.RollbackAsync();
+                    
+                    throw new ServiceException("Um erro ocorreu enquanto tentava inserir o novo usuário: "+ genericExc);
+                }
             }
+
 
         }
 
-        public Task<double> ObterSaldo(Guid id)
+        public async Task<double> ObterSaldo(long cpf)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var usuario = await ObterUsuarioPorCPF(cpf);
+                if (usuario is not null)
+                {
+                    return usuario.Saldo;
+                }
+                else
+                {
+                    throw new ServiceException("Não foi possivel localizar nenhum usuário com esse CPF.");
+                }
+            }
+            catch (ServiceException serviceExc)
+            {
+
+                throw new ServiceException("Um erro ocorreu enquanto tentava obter o saldo do usuário: " + serviceExc);
+            }
+            catch (Exception genericExc)
+            {
+
+
+                throw new ServiceException("Um erro ocorreu enquanto tentava obter o saldo do usuário: " + genericExc);
+            }
+
         }
 
         public Task<List<Usuario>> ObterTodosUsuarios()
@@ -52,6 +99,11 @@ namespace PicPayment.Application.Services
         public async Task<Usuario> ObterUsuarioPorCPF(long cpf)
         {
             var usuario = await _payment.Usuarios.FirstOrDefaultAsync(u => u.CPF == cpf);
+            return usuario;
+        }
+        public async Task<Usuario> ObterUsuarioPorEmail(string email)
+        {
+            var usuario = await _payment.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
             return usuario;
         }
 

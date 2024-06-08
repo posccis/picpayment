@@ -13,8 +13,9 @@ namespace PicPayment.Application.Interfaces
         Task AlterarUsuario(T usuario);
         Task<T> ObterUsuarioPorId(Guid id);
         Task<T> ObterUsuarioPorCPF(long cpf);
+        Task<T> ObterUsuarioPorEmail(string email);
         Task<List<T>> ObterTodosUsuarios();
-        Task<double> ObterSaldo(Guid id);
+        Task<double> ObterSaldo(long cpf);
         Task TransferirValor(Guid idOrigem, Guid idDestino, double valor);
         Task RealizarLogin(long cpf, string senha);
 
