@@ -1,4 +1,5 @@
-﻿using PicPayment.Domain.Domains;
+using PicPayment.Domain.Domains;
+using PicPayment.Persistence.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,23 @@ using System.Threading.Tasks;
 
 namespace PicPayment.Persistence
 {
-    internal static class Seed
+    public static class Seed
     {
+        public static async Task SeedData(PicPaymentContext context)
+        {
+            if (context.Usuarios.Any() || context.Transferencias.Any())
+            {
+                return;
+            }
+            var usuarios = GetUsuarioSeed();
+            context.Usuarios.AddRange(usuarios);
+            await context.SaveChangesAsync();
+
+
+            context.Transferencias.AddRange(GetTransferenciaSeed(usuarios));
+            await context.SaveChangesAsync();
+
+        }
         public static List<Usuario> GetUsuarioSeed()
         {
             var usuarios = new List<Usuario>
@@ -22,7 +38,6 @@ namespace PicPayment.Persistence
                     Senha = "senha123",
                     Categoria = "comum",
                     Saldo = 1000,
-                    Tranferencias = new List<Transferencia>()
                 },
                 new Usuario
                 {
@@ -33,7 +48,6 @@ namespace PicPayment.Persistence
                     Senha = "senha456",
                     Categoria = "comum",
                     Saldo = 500,
-                    Tranferencias = new List<Transferencia>()
                 },
                 new Usuario
                 {
@@ -44,7 +58,6 @@ namespace PicPayment.Persistence
                     Senha = "senha789",
                     Categoria = "lojista",
                     Saldo = 750,
-                    Tranferencias = new List<Transferencia>()
                 }
             };
 
@@ -58,8 +71,8 @@ namespace PicPayment.Persistence
                 new Transferencia
                 {
                     Id = Guid.NewGuid(),
-                    IdContaOrigem = usuarios[0].Id.GetHashCode(), // Simplification for example purposes
-                    IdContaDestino = usuarios[1].Id.GetHashCode(),
+                    IdContaOrigem = usuarios[0].Id, // Simplification for example purposes
+                    IdContaDestino = usuarios[1].Id,
                     Valor = 200,
                     DataTransferencia = DateTime.Now,
                     TipoTransferencia = "Transferência Simples"
@@ -67,8 +80,8 @@ namespace PicPayment.Persistence
                 new Transferencia
                 {
                     Id = Guid.NewGuid(),
-                    IdContaOrigem = usuarios[1].Id.GetHashCode(),
-                    IdContaDestino = usuarios[2].Id.GetHashCode(),
+                    IdContaOrigem = usuarios[1].Id,
+                    IdContaDestino = usuarios[2].Id,
                     Valor = 150,
                     DataTransferencia = DateTime.Now,
                     TipoTransferencia = "Transferência Simples"
@@ -76,17 +89,14 @@ namespace PicPayment.Persistence
                 new Transferencia
                 {
                     Id = Guid.NewGuid(),
-                    IdContaOrigem = usuarios[0].Id.GetHashCode(),
-                    IdContaDestino = usuarios[2].Id.GetHashCode(),
+                    IdContaOrigem = usuarios[0].Id,
+                    IdContaDestino = usuarios[2].Id,
                     Valor = 300,
                     DataTransferencia = DateTime.Now,
                     TipoTransferencia = "Transferência Simples"
                 }
             };
 
-            usuarios[0].Tranferencias = new List<Transferencia> { transferencias[0], transferencias[2] };
-            usuarios[1].Tranferencias = new List<Transferencia> { transferencias[0], transferencias[1] };
-            usuarios[2].Tranferencias = new List<Transferencia> { transferencias[1], transferencias[2] };
 
             return transferencias;
         }
