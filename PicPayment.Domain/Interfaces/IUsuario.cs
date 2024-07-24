@@ -1,4 +1,4 @@
-﻿using PicPayment.Domain.Domains;
+using PicPayment.Domain.Domains;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,7 @@ namespace PicPayment.Domain.Interfaces
         public string Senha { get; set; }
         public string Categoria { get; set; }
         public double Saldo { get; set; }
-        public IEnumerable<Transferencia> Tranferencias { get; set; }
+        public ICollection<Transferencia> TransferenciasOrigem { get; set; }
+        public ICollection<Transferencia> TransferenciasDestino { get; set; }
     }
 }
