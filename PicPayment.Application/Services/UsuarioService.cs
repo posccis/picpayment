@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using PicPayment.Application.Autenticacao;
 using PicPayment.Application.Interfaces;
+using PicPayment.Application.PasswordHasher;
 using PicPayment.Domain.Domains;
 using PicPayment.Domain.Exceptions;
 using PicPayment.Persistence.Context;
@@ -15,7 +17,7 @@ namespace PicPayment.Application.Services
     public class UsuarioService : IUsuarioService<Usuario>
     {
         private readonly PicPaymentContext _payment;
-
+        
         public UsuarioService(PicPaymentContext payment)
         {
             _payment = payment;
@@ -36,6 +38,7 @@ namespace PicPayment.Application.Services
                     var usuarioEmail = await ObterUsuarioPorEmail(usuario.Email);
                     if (usuarioCPF == null && usuarioEmail == null)
                     {
+                        usuario.Senha = PasswordHasher.HashPassword(usuario.Senha);
                         _payment.Usuarios.Add(usuario);
                         _payment.SaveChanges();
                     }
@@ -115,7 +118,27 @@ namespace PicPayment.Application.Services
 
         public Task RealizarLogin(long cpf, string senha)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var usuario = _payment.Usuarios.FirstOrDefault(u => u.CPF == cpf);
+                if(usuario is not null)
+                {
+                    var senhaCorreta = PasswordHasher.VerifyPassword(senha, usuario.Senha);
+
+                }
+                else
+                {
+                    throw new ServiceException("Não foi possivel localizar o usuário.");
+                }
+            }
+            catch (ServiceException serviceExc)
+            {
+                throw new ServiceException("Um erro ocorreu enquanto tentava inserir um novo usuário: " + serviceExc);
+            }
+            catch (Exception genericExc)
+            {
+                throw new ServiceException("Um erro ocorreu enquanto tentava inserir o novo usuário: " + genericExc);
+            }
         }
 
         public Task TransferirValor(Guid idOrigem, Guid idDestino, double valor)
