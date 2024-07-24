@@ -9,14 +9,14 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["PicPayment.API/PicPayment.API.csproj", "PicPayment.API/"]
-RUN dotnet restore "./PicPayment.API/PicPayment.API.csproj"
+RUN dotnet restore "PicPayment.API/PicPayment.API.csproj"
 COPY . .
 WORKDIR "/src/PicPayment.API"
-RUN dotnet build "./PicPayment.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "PicPayment.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PicPayment.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "PicPayment.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

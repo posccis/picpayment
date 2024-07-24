@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  picpaymentapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: picpaymentapi
+    networks:
+      - picpaynetwork
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - picpaymentdb
+
+  picpaymentdb:
+    image: mcr.microsoft.com/mssql/server
+    container_name: picpaymentdb
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "p!cp4yment"
+    ports:
+      - "1433:1433"
+    networks:
+      - picpaynetwork
+
+networks:
+  picpaynetwork:
+    driver: bridge

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PicPayment.Application.Interfaces;
 using PicPayment.Application.Services;
 using PicPayment.Domain.Domains;
+using PicPayment.Persistence;
 using PicPayment.Persistence.Context;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PicPaymentContext>(opt =>
 {
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("PicPayment.API"));
 });
 
 builder.Services.AddScoped<IUsuarioService<Usuario>, UsuarioService>();
@@ -35,5 +36,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+
+try
+{
+    var context = services.GetRequiredService<PicPaymentContext>();
+    context.Database.Migrate();
+    await Seed.SeedData(context);
+}
+catch (Exception ex)
+{
+    throw;
+    //var logger = services.GetRequiredService<ILogger<Program>>();
+    //logger.LogError(ex, "Ocorreu um erro durante a migration.");
+}
 
 app.Run();

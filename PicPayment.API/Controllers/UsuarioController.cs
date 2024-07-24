@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PicPayment.Application.Interfaces;
 using PicPayment.Application.Services;
 using PicPayment.Domain.Domains;
@@ -12,7 +12,7 @@ namespace PicPayment.API.Controllers
     {
         private readonly IUsuarioService<Usuario> _usuarioService;
 
-        public UsuarioController( UsuarioService usuarioService)
+        public UsuarioController( IUsuarioService<Usuario> usuarioService)
         {
             _usuarioService = usuarioService;
         }
