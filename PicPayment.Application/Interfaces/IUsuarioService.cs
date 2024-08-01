@@ -1,4 +1,4 @@
-﻿using PicPayment.Domain.Domains;
+using PicPayment.Domain.Domains;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace PicPayment.Application.Interfaces
         Task<List<T>> ObterTodosUsuarios();
         Task<double> ObterSaldo(long cpf);
         Task TransferirValor(Guid idOrigem, Guid idDestino, double valor);
-        Task RealizarLogin(long cpf, string senha);
+        void RealizarLogin(long cpf, string senha);
 
     }
 }

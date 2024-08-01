@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PicPayment.Application.Autenticacao;
 using PicPayment.Application.Interfaces;
-using PicPayment.Application.PasswordHasher;
 using PicPayment.Domain.Domains;
 using PicPayment.Domain.Exceptions;
 using PicPayment.Persistence.Context;
@@ -41,6 +40,7 @@ namespace PicPayment.Application.Services
                         usuario.Senha = PasswordHasher.HashPassword(usuario.Senha);
                         _payment.Usuarios.Add(usuario);
                         _payment.SaveChanges();
+                        transaction.Commit();
                     }
                     else
                     {
@@ -116,7 +116,7 @@ namespace PicPayment.Application.Services
             return usuario;
         }
 
-        public Task RealizarLogin(long cpf, string senha)
+        public void RealizarLogin(long cpf, string senha)
         {
             try
             {
@@ -124,6 +124,8 @@ namespace PicPayment.Application.Services
                 if(usuario is not null)
                 {
                     var senhaCorreta = PasswordHasher.VerifyPassword(senha, usuario.Senha);
+
+                    if(!senhaCorreta) throw new ServiceException("Não foi possivel localizar o usuário.");
 
                 }
                 else
