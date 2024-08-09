@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +8,10 @@ namespace PicPayment.Domain.Exceptions
 {
     public class ServiceException : Exception
     {
-        public ServiceException(string message) : base(message)
+        public int codigo;
+        public ServiceException(string message, int codigo = 0) : base(message)
         {
-
+            codigo = codigo;
         }
     }
 }
