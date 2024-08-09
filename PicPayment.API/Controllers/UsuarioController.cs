@@ -50,6 +50,45 @@ namespace PicPayment.API.Controllers
                 return BadRequest(genericExcp.Message);
             }
         }
+
+        /// <summary>
+        /// Endpoint para cadastrar um usuário
+        /// </summary>
+        /// <param name="transferencia"></param>
+        /// <response code="200">Transferência realizada com sucesso.</response>
+        /// <response code="404">Um dos usuário não foi localizado.</response>
+        /// <response code="500">Se ocorreu um erro interno do servidor.</response>
+        [HttpPost("tranferencia")]
+        [Authorize]
+        public async Task<IActionResult> RealizaTransferencia([FromBody] TransferenciaDTORequest transferencia)
+        {
+            try
+            {
+                var transferenciaRes = _mapper.Map<Transferencia>(transferencia);
+                transferenciaRes.DataTransferencia = DateTime.Now;
+                transferenciaRes.TipoTransferencia = "Padrão";
+                await _usuarioService.TransferirValor(transferenciaRes);
+                return Ok("Transferencia realizada com sucesso");
+            }
+            catch (ServiceException serviceExc)
+            {
+
+                switch (serviceExc.codigo)
+                {
+                    case 1:
+                        return NotFound("Ocorreu um erro ao tentar realizar a transferencia:\n" + serviceExc.Message);
+                    case 2:
+                        return BadRequest("Ocorreu um erro ao tentar realizar a transferencia:\n" + serviceExc.Message);
+                    default:
+                        return StatusCode(StatusCodes.Status500InternalServerError, serviceExc.Message);
+                }
+            }
+            catch (Exception exp)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, exp.Message);
+            }
+        }
+
         /// <summary>
         /// Endpoint para cadastrar um usuário
         /// </summary>
