@@ -11,7 +11,7 @@ namespace PicPayment.Domain.Domains
         public Guid Id { get; set; }
         public Guid IdContaOrigem { get; set; }
         public Guid IdContaDestino { get; set; }
-        public int Valor { get; set; }
+        public double Valor { get; set; }
         public DateTime DataTransferencia { get; set; }
         public string TipoTransferencia { get; set; }
         public Usuario ContaOrigem { get; set; }
