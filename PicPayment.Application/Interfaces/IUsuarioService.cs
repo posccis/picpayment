@@ -16,8 +16,8 @@ namespace PicPayment.Application.Interfaces
         Task<T> ObterUsuarioPorEmail(string email);
         Task<List<T>> ObterTodosUsuarios();
         Task<double> ObterSaldo(long cpf);
-        Task TransferirValor(Guid idOrigem, Guid idDestino, double valor);
-        void RealizarLogin(long cpf, string senha);
+        Task TransferirValor(Transferencia transferencia);
+        Task RealizarLogin(long cpf, string senha);
 
     }
 }

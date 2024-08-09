@@ -116,7 +116,7 @@ namespace PicPayment.Application.Services
             return usuario;
         }
 
-        public void RealizarLogin(long cpf, string senha)
+        public async Task RealizarLogin(long cpf, string senha)
         {
             try
             {
@@ -143,9 +143,61 @@ namespace PicPayment.Application.Services
             }
         }
 
-        public Task TransferirValor(Guid idOrigem, Guid idDestino, double valor)
+        public async Task TransferirValor(Transferencia transferencia)
         {
-            throw new NotImplementedException();
+            using (IDbContextTransaction transaction = _payment.Database.BeginTransaction())
+            {
+                try
+                {
+                    var usuarioOrigem = await _payment.Usuarios.FirstOrDefaultAsync(u => u.Id == transferencia.IdContaOrigem);
+                    if (usuarioOrigem is not null)
+                    {
+                        if (usuarioOrigem.Saldo >= transferencia.Valor)
+                        {
+                            var usuarioDestino = await _payment.Usuarios.FirstOrDefaultAsync(u => u.Id == transferencia.IdContaDestino);
+                            if (usuarioDestino is not null)
+                            {
+                                usuarioDestino.Saldo += transferencia.Valor;
+                                transferencia.ContaDestino = usuarioDestino;
+                                usuarioOrigem.Saldo -= transferencia.Valor;
+                                transferencia.ContaOrigem = usuarioOrigem;
+
+                                _payment.Transferencias.Add(transferencia);
+                                await _payment.SaveChangesAsync();
+                                transaction.Commit();
+
+                            }
+                            else
+                            {
+                                throw new ServiceException("Não foi possivel localizar o usuário da conta de destino.", 1);
+                            }
+                        }
+                        else
+                        {
+                            throw new ServiceException("A conta de origem não possui saldo suficiente.", 2);
+                        }
+                    }
+                    else
+                    {
+                        throw new ServiceException("Não foi possivel localizar o usuário da conta de origem.", 1);
+                    }
+                }
+                catch (ServiceException serviceExc)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new ServiceException($"Não foi possivel tentar realizar a tranferencia.\n Um erro ocorreu:{ex.Message}", 3);
+                }
+                finally
+                {
+                    transaction.Dispose();
+                }
+
+            }
         }
     }
 }
