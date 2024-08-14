@@ -8,8 +8,13 @@ using PicPayment.Persistence.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using PicPayment.Domain.DTOs;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace PicPayment.Application.Services
 {
@@ -152,11 +157,18 @@ namespace PicPayment.Application.Services
                     var usuarioOrigem = await _payment.Usuarios.FirstOrDefaultAsync(u => u.Id == transferencia.IdContaOrigem);
                     if (usuarioOrigem is not null)
                     {
+                        if (usuarioOrigem.Categoria == "lojista") throw new ServiceException("Contas Lojistas não podem realizar transferências.", 0);
+
                         if (usuarioOrigem.Saldo >= transferencia.Valor)
                         {
                             var usuarioDestino = await _payment.Usuarios.FirstOrDefaultAsync(u => u.Id == transferencia.IdContaDestino);
                             if (usuarioDestino is not null)
                             {
+                                var authorization = await ExecutaEndPointAuthorize();
+                                if (authorization is null) throw new ServiceException("Não foi possivel realizar a autorização da transferencia.", 0);
+                                if (!authorization.Data.Authorization) throw new ServiceException("Transferencia não autorizada!.", 0);
+
+
                                 usuarioDestino.Saldo += transferencia.Valor;
                                 transferencia.ContaDestino = usuarioDestino;
                                 usuarioOrigem.Saldo -= transferencia.Valor;
@@ -197,6 +209,38 @@ namespace PicPayment.Application.Services
                     transaction.Dispose();
                 }
 
+            }
+        }
+
+        public async Task<AuthorizeDTOResponse> ExecutaEndPointAuthorize()
+        {
+            var endpoint = "https://util.devi.tools/api/v2/authorize";
+            AuthorizeDTOResponse authorization;
+            try
+            {
+                using(var httpClient = new HttpClient())
+                {
+                    HttpResponseMessage response = await httpClient.GetAsync(endpoint);
+                    //response.EnsureSuccessStatusCode();
+
+                    string responseData = await response.Content.ReadAsStringAsync();
+
+                    authorization = JsonSerializer.Deserialize<AuthorizeDTOResponse>(responseData, new JsonSerializerOptions()
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = true,
+
+                    });
+
+                }
+
+                return authorization;
+
+            }
+            catch (Exception)
+            {
+
+                throw;
             }
         }
     }

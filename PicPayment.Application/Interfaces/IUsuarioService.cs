@@ -1,4 +1,5 @@
 using PicPayment.Domain.Domains;
+using PicPayment.Domain.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace PicPayment.Application.Interfaces
     {
         Task InserirUsuario(T usuario);
         Task AlterarUsuario(T usuario);
+        Task<AuthorizeDTOResponse> ExecutaEndPointAuthorize();
         Task<T> ObterUsuarioPorId(Guid id);
         Task<T> ObterUsuarioPorCPF(long cpf);
         Task<T> ObterUsuarioPorEmail(string email);
